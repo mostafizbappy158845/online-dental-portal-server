@@ -20,14 +20,21 @@ async function run(){
         const appointmentOptionCollection = client.db('dentalPortal').collection('appointmentOptions');
         const bookingsCollection = client.db('dentalPortal').collection('bookings');
         app.get('/appointmentOptions', async(req, res) =>{
+            const date = req.query.date;
             const query = {};
             const options = await appointmentOptionCollection.find(query).toArray();
+            const bookingQuery = {appointmentdate: date}
+            const alreadyBooked = await bookingsCollection.find(bookingQuery).toArray();
+            options.forEach(option =>{
+                const optionBooked = alreadyBooked.filter(book => book.treatment === option.name);
+                const bookedSlots = optionBooked.map(book => book.slot);
+                console.log(date, option.name,bookedSlots)
+            })
             res.send(options);
         })
 
         app.post ('/bookings', async(req, res) =>{
             const booking =  req.body
-            console.log(booking);
             const result = await bookingsCollection.insertOne(booking);
             res.send(result);
         })
