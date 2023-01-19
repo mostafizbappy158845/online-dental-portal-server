@@ -19,16 +19,23 @@ async function run(){
     try{
         const appointmentOptionCollection = client.db('dentalPortal').collection('appointmentOptions');
         const bookingsCollection = client.db('dentalPortal').collection('bookings');
+
+        //use Aggregate to query multiple collection and then merge data
         app.get('/appointmentOptions', async(req, res) =>{
             const date = req.query.date;
             const query = {};
             const options = await appointmentOptionCollection.find(query).toArray();
+            
+            //get the booking of the provided data
             const bookingQuery = {appointmentdate: date}
             const alreadyBooked = await bookingsCollection.find(bookingQuery).toArray();
+            
+            //carefully
             options.forEach(option =>{
                 const optionBooked = alreadyBooked.filter(book => book.treatment === option.name);
                 const bookedSlots = optionBooked.map(book => book.slot);
-                console.log(date, option.name,bookedSlots)
+                const remainingSlots = option.slots.filter(slot => !bookedSlots.includes(slot))
+                option.slots = remainingSlots;
             })
             res.send(options);
         })
