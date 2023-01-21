@@ -27,7 +27,7 @@ async function run(){
             const options = await appointmentOptionCollection.find(query).toArray();
             
             //get the booking of the provided data
-            const bookingQuery = {appointmentdate: date}
+            const bookingQuery = {appointmentDate: date}
             const alreadyBooked = await bookingsCollection.find(bookingQuery).toArray();
             
             //carefully
@@ -41,7 +41,18 @@ async function run(){
         })
 
         app.post ('/bookings', async(req, res) =>{
-            const booking =  req.body
+            const booking =  req.body;
+            console.log(booking);
+            const query = {
+                appointmentDate: booking.appointmentDate, //capital D-date;
+                email: booking.email,
+                treatment: booking.treatment
+            }
+            const alreadyBooked = await bookingsCollection.find(query).toArray();
+            if(alreadyBooked.length){
+                const message = `You already booking on ${booking.appointmentDate}`//capital D-date;
+                return res.send({acknowledged: false, message});
+            }
             const result = await bookingsCollection.insertOne(booking);
             res.send(result);
         })
