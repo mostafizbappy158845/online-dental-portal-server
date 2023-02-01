@@ -16,6 +16,15 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 // console.log(uri);
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
+function verifyJWT(req, res, next){
+    
+    const authHeader = req.headers.authorization;
+    if(!authHeader){
+        return res.send(401).send('unauthorized access'); 
+    }
+    const token = authHeader.split(' ')[1];
+}
+
 async function run(){
     try{
         const appointmentOptionCollection = client.db('dentalPortal').collection('appointmentOptions');
@@ -42,8 +51,9 @@ async function run(){
             res.send(options);
         })
 
-        app.get('/bookings', async(req, res) =>{
+        app.get('/bookings', verifyJWT, async(req, res) =>{
             const email =  req.query.email;
+            
             const query = {email: email};
             const bookings = await bookingsCollection.find(query).toArray();
             res.send(bookings);
